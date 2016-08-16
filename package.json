@@ -1,0 +1,13 @@
+{
+  "name": "Controller-Light",
+  "version": "1.0.0",
+  "description": "Controls house light on Docker",
+  "author": "Dmitry A. Grechka <dmitry@grechka.family",
+  "main": "controller.js",
+  "scripts": {
+    "start": "node controller.js"
+  },
+  "dependencies": {
+    "node-redis":"~0.1.7"
+  }
+}
