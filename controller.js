@@ -107,7 +107,7 @@ redis_sub.on("subscribe",function(channel,count) {
 });
 
 redis_sub.subscribe(db_key_daytime+".subscription");
-for(var i=0;i<hosts_key_array.indexOf.length;i++)
+for(var i=0;i<hosts_key_array.length;i++)
   redis_sub.subscribe(hosts_key_array[i]+".subscription");
 
 //State machine
