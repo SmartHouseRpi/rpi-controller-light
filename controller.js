@@ -124,10 +124,11 @@ var State = {
   ONLINE_NIGHT: 0,
   ONLINE_DAY: 1,
   OFFLINE_NIGHT: 2,
-  OFFLINE_DAY: 3
+  OFFLINE_DAY: 3,
+  INITIAL: -1
 }
 
-var state = State.OFFLINE_DAY;
+var state = State.INITIAL;
 
 var rules = [];
 
@@ -135,7 +136,6 @@ function someHostOnline() {
   return (hosts.length>0)&&(hosts.some(elem => elem=="online"));
 }
 
-
 rules.push({
   from: State.ONLINE_NIGHT,
   to: State.ONLINE_DAY,
@@ -182,6 +182,12 @@ rules.push({
   from: State.OFFLINE_DAY,
   to: State.ONLINE_DAY,
   condition: () => (someHostOnline())
+});
+
+rules.push({
+  from: State.INITIAL,
+  to: State.OFFLINE_DAY,
+  condition: () => (true)
 });
 
 function Tick() {
@@ -191,12 +197,12 @@ function Tick() {
     if((state == rule.from) && (rule.condition())) {
       console.log("Transitioning from state "+ state +" to "+ rule.to);
       state = rule.to;
-      applySideEffects(state);
       ScheduleTick();
       return;
     }
   }
   console.log("Retaining in state "+state);
+  applySideEffects(state);
 };
 
 function applySideEffects(state) {
