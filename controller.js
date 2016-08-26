@@ -36,7 +36,12 @@ redis_sub.on("error", function (err) {
 var hosts = [];
 var daytime = "unknown";
 
-var hosts_key_array = db_keys_hosts.split(";");
+var host_groups_array = db_keys_hosts.split("|");
+var hosts_key_array = [];
+for(var i=0;i<host_groups_array.length;i++) {
+ hosts_key_array.push(host_groups_array[i].split(";")); 
+ hosts.push([]);
+}
 
 //Save updates section
 
@@ -48,20 +53,20 @@ function setDaytime(new_daytime) {
   }
 }
 
-function setHostState(idx,state) {
-  if(!hosts[idx] || (hosts[idx] != state)) {
-    hosts[idx] = state;
-    console.log("Host #"+idx+" ("+hosts_key_array[idx]+") presence changed to \""+state+"\"");
+function setHostState(groupIdx,hostIdx,state) {
+  if(!hosts[groupIdx][hostIdx] || (hosts[groupIdx][hostIdx] != state)) {
+    hosts[groupIdx][hostIdx] = state;
+    console.log("Host #"+(hostIdx+1)+" ("+hosts_key_array[gropIdx][hostIdx]+") of group #"+(gropIdx+1)+" presence changed to \""+state+"\"");
     ScheduleTick();
   }
 }
 
 //Polling section
 
-function createFetchStatusCallback(idx) {
+function createFetchStatusCallback(grpIdx,hostIdx) {
   return function(error,value) {
     if(!error)
-      setHostState(idx,value);
+      setHostState(grpIdx,hostIdx,value);
     else
       console.warn("Host state polling failed: "+error);
   }
@@ -75,8 +80,10 @@ function InitiatePoll() {
       console.warn("Daytime polling failed: "+error);
   });
 
-  for(var i=0;i<hosts_key_array.length;i++)
-     redis.get(hosts_key_array[i], createFetchStatusCallback(i));
+  for(var i=0;i<hosts_key_array.length;i++) {
+    for(var j=0;j<hosts_key_array[i].length;j++)
+     redis.get(hosts_key_array[i][j], createFetchStatusCallback(i,j));
+  }
 }
 
 setInterval(InitiatePoll,poll_interval);
@@ -107,8 +114,10 @@ redis_sub.on("subscribe",function(channel,count) {
 });
 
 redis_sub.subscribe(db_key_daytime+".subscription");
-for(var i=0;i<hosts_key_array.length;i++)
-  redis_sub.subscribe(hosts_key_array[i]+".subscription");
+for(var i=0;i<hosts_key_array.length;i++) {
+  for(var j=0;j<hosts_key_array[i].length;j++)
+    redis_sub.subscribe(hosts_key_array[i][j]+".subscription");
+}
 
 //State machine
 
@@ -132,8 +141,8 @@ var state = State.INITIAL;
 
 var rules = [];
 
-function someHostOnline() {
-  return (hosts.length>0)&&(hosts.some(elem => elem=="online"));
+function presence() {
+  return (hosts.length>0)&&(hosts.every(group => group.some(host => host=="online")));
 }
 
 rules.push({
@@ -151,13 +160,13 @@ rules.push({
 rules.push({
   from: State.ONLINE_NIGHT,
   to: State.OFFLINE_NIGHT,
-  condition: () => (!someHostOnline())
+  condition: () => (!presence())
 });
 
 rules.push({
   from: State.OFFLINE_NIGHT,
   to: State.ONLINE_NIGHT,
-  condition: () => (someHostOnline())
+  condition: () => presence()
 });
 
 rules.push({
@@ -175,13 +184,13 @@ rules.push({
 rules.push({
   from: State.ONLINE_DAY,
   to: State.OFFLINE_DAY,
-  condition: () => (!someHostOnline())
+  condition: () => (!presence())
 });
 
 rules.push({
   from: State.OFFLINE_DAY,
   to: State.ONLINE_DAY,
-  condition: () => (someHostOnline())
+  condition: () => (presence())
 });
 
 rules.push({
