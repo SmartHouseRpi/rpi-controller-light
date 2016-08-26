@@ -56,7 +56,7 @@ function setDaytime(new_daytime) {
 function setHostState(groupIdx,hostIdx,state) {
   if(!hosts[groupIdx][hostIdx] || (hosts[groupIdx][hostIdx] != state)) {
     hosts[groupIdx][hostIdx] = state;
-    console.log("Host #"+(hostIdx+1)+" ("+hosts_key_array[gropIdx][hostIdx]+") of group #"+(gropIdx+1)+" presence changed to \""+state+"\"");
+    console.log("Host #"+(hostIdx+1)+" ("+hosts_key_array[groupIdx][hostIdx]+") of group #"+(groupIdx+1)+" presence changed to \""+state+"\"");
     ScheduleTick();
   }
 }
