@@ -36,11 +36,15 @@ redis_sub.on("error", function (err) {
 var hosts = [];
 var daytime = "unknown";
 
+var subscription_back_map = [];
 var host_groups_array = db_keys_hosts.split("|");
 var hosts_key_array = [];
 for(var i=0;i<host_groups_array.length;i++) {
  hosts_key_array.push(host_groups_array[i].split(";")); 
  hosts.push([]);
+ for(var j=0;j<hosts_key_array[i].length;j++) {
+   subscription_back_map[hosts_key_array[i][j]]= [i,j];
+ }
 }
 
 //Save updates section
@@ -101,11 +105,11 @@ redis_sub.on("message",function(channel,message) {
   if(channel == db_key_daytime)
     setDaytime(message);
   else {
-    var idx = hosts_key_array.indexOf(channel);
+    var idx = subscription_back_map[channel];
     if(idx == -1)
       console.warn("Notification on unexpected channel "+channel);
     else
-      setHostState(idx,message);
+      setHostState(idx[0],idx[1],message);
   }
 });
 
