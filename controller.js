@@ -152,13 +152,13 @@ function presence() {
 rules.push({
   from: State.ONLINE_NIGHT,
   to: State.ONLINE_DAY,
-  condition: () => (daytime=="day")
+  condition: () => (daytime!="night")
 });
 
 rules.push({
   from: State.ONLINE_DAY,
   to: State.ONLINE_NIGHT,
-  condition: () => (daytime!="day")
+  condition: () => (daytime=="night")
 });
 
 rules.push({
@@ -176,13 +176,13 @@ rules.push({
 rules.push({
   from: State.OFFLINE_NIGHT,
   to: State.OFFLINE_DAY,
-  condition: () => (daytime=="day")
+  condition: () => (daytime!="night")
 });
 
 rules.push({
   from: State.OFFLINE_DAY,
   to: State.OFFLINE_NIGHT,
-  condition: () => (daytime!="day")
+  condition: () => (daytime=="night")
 });
 
 rules.push({
